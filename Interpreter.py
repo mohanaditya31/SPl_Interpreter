@@ -7,7 +7,31 @@ class Token:
         self.val =val  
         self.ty =ty 
 
-
+class Operation:
+    def eval(op,a,b):
+        if op.val =="+":
+            return a+b 
+        elif op.val == "-":
+            return a-b
+        elif op.val =="*":
+            return a*b
+        elif op.val =="/":
+            return a/b 
+        elif op.val =="^":
+            return a**b 
+            
+class Function:
+    def eval(fu,a):
+        if fu.val =="sin":
+            return math.sin(a) 
+        elif fu.val == "cos":
+            return math.cos(a)
+        elif fu.val =="log":
+            return math.log(a)
+        elif fu.val =="exp":
+            return math.exp(a)
+        elif fu.val =="sqrt":
+            return math.sqrt(a) 
 
 class Interpreter:
 
@@ -117,28 +141,13 @@ class Interpreter:
             return current_token.val
         
         elif current_token.ty == OPERATION:
-            if current_token.val == "+":
-                return (self.parse() + self.parse())
-            elif current_token.val == '-':
-                return self.parse() - self.parse()
-            elif current_token.val == '*':
-                return self.parse()* self.parse()
-            elif current_token.val == '/':
-                return self.parse()/self.parse()
-            elif current_token.val == '^':
-                return self.parse()**self.parse()
+            left = self.parse()
+            right = self.parse()
+            return Operation.eval(current_token,left,right)
             
         elif current_token.ty == FUNCTION:
-            if current_token.val == "sin":
-                return math.sin(self.parse())
-            elif current_token.val == 'cos':
-                return math.cos(self.parse())
-            elif current_token.val == 'log':
-                return math.log(self.parse())
-            elif current_token.val == 'exp':
-                return math.exp(self.parse())
-            elif current_token.val == 'sqrt':
-                return math.sqrt(self.parse())
+            next = self.parse()
+            return Function.eval(current_token,next)
             
         elif current_token.ty == CONSTANT:
             return 3.141592653589793
