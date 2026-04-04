@@ -50,80 +50,44 @@ class Interpreter:
         print("Invalid Input")
         raise Exception('Error parsing input')
     
-    def get_next_token(self):
+    def finalize_token(self):
+        if self.str == "":
+            return
 
-        text =self.text
+        if self.str.isdigit():
+            self.tokens.append(Token(int(self.str), "INTEGER"))
 
-        if self.pos > len(text)-1:
-            if(self.str != ""):
-                if self.str.isdigit():
-                    self.tokens.append(Token(int(self.str),"INTEGER"))
-                    self.str =""
-                    self.type = None
-                    return
-                
-                elif self.str in self.operators:
-                    self.tokens.append(Token(self.str,OPERATION))
-                    self.str =""
-                    self.type = None
-                    return
-                
-                elif self.str in self.functions:
-                    self.tokens.append(Token(self.str,FUNCTION))
-                    self.str =""
-                    self.type = None
-                    return
-                
-                elif self.str == "pi":
-                    self.tokens.append(Token(self.str,CONSTANT))
-                    self.str =""
-                    self.type = None
-                    return
-                
-                else:
-                    return self.error()
-            
-                
-            return Token("EOF",None)
-        
+        elif self.str in self.operators:
+            self.tokens.append(Token(self.str, OPERATION))
 
-        
-        current_char = text[self.pos]
-        self.pos+=1
-        
+        elif self.str in self.functions:
+            self.tokens.append(Token(self.str, FUNCTION))
 
-        if current_char.isspace():                               #This is space
-            if self.str.isdigit():
-                self.tokens.append(Token(int(self.str),"INTEGER"))
-                self.str =""
-                self.type = None
-                return
-            
-            elif self.str in self.operators:
-                self.tokens.append(Token(self.str,OPERATION))
-                self.str =""
-                self.type = None
-                return
-            
-            elif self.str in self.functions:
-                self.tokens.append(Token(self.str,FUNCTION))
-                self.str =""
-                self.type = None
-                return
-            
-            elif self.str == "pi":
-                self.tokens.append(Token(self.str,CONSTANT))
-                self.str =""
-                self.type = None
-                return
-            
-            else:
-                return self.error()
-            
+        elif self.str == "pi":
+            self.tokens.append(Token(self.str, CONSTANT))
+
         else:
-            self.str +=current_char
-            self.get_next_token()
+            return self.error()
+
+        self.str = ""
+        self.type = None
             
+    def get_next_token(self):
+        text = self.text
+
+        if self.pos > len(text) - 1:
+            self.finalize_token()
+            return Token("EOF", None)
+
+        current_char = text[self.pos]
+        self.pos += 1
+
+        if current_char.isspace():
+            self.finalize_token()
+            return
+        else:
+            self.str += current_char
+            return self.get_next_token()
 
 
     def expr(self):
