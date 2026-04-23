@@ -32,10 +32,12 @@ class Function:
             return math.exp(a)
         elif fu.val =="sqrt":
             return math.sqrt(a) 
+        
+
 
 class Interpreter:
 
-    def __init__(self,text):
+    def __init__(self,text,variable = None):
 
         self.text =text 
         self.pos =0
@@ -45,6 +47,10 @@ class Interpreter:
         self.type = None
         self.str =""
         self.parse_pos = 0
+        self.variable = variable if variable is not None else {'a': 0, 'b': 0, 'c': 0}
+        self.variable_write = ["a=","b=","c="]
+
+
 
     def error(self):
         print("Invalid Input")
@@ -55,7 +61,7 @@ class Interpreter:
             return
 
         if self.str.isdigit():
-            self.tokens.append(Token(int(self.str), "INTEGER"))
+            self.tokens.append(Token(int(self.str), INTEGER))
 
         elif self.str in self.operators:
             self.tokens.append(Token(self.str, OPERATION))
@@ -65,6 +71,13 @@ class Interpreter:
 
         elif self.str == "pi":
             self.tokens.append(Token(self.str, CONSTANT))
+
+        elif self.str in self.variable:
+            self.tokens.append(Token(self.str,"Variable_read"))
+        
+        elif self.str in self.variable_write:
+            self.tokens.append(Token(self.str,"Variable_write"))
+        
 
         else:
             return self.error()
@@ -116,12 +129,31 @@ class Interpreter:
         elif current_token.ty == CONSTANT:
             return 3.141592653589793
         
+        elif current_token.ty == "Variable_write":
+            if current_token.val == 'a=':
+                self.variable.update({"a":self.parse() })
+                return self.variable["a"]
+
+            elif current_token.val == 'b=':
+                self.variable.update({"b":self.parse() })
+                return self.variable["b"]
+            elif current_token.val == 'c=':
+                self.variable.update({"c":self.parse() })
+                return self.variable["c"]
         
+        elif current_token.ty == "Variable_read":
+            if current_token.val == 'a':
+                return self.variable["a"]
+            elif current_token.val == 'b':
+                return self.variable["b"]
+            elif current_token.val == 'c':
+                return self.variable["c"]
         
         return 0
         
 
 def main():
+    variables = {'a':0 , 'b':0,'c':0}
     while True:
         try:
             text = input('spl> ')
@@ -132,7 +164,7 @@ def main():
         if text == "exit":
             print("bye!")
             break
-        interpreter = Interpreter(text)
+        interpreter = Interpreter(text,variables)
         result = interpreter.expr()
         print(result)
 
