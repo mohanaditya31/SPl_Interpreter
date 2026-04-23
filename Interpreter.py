@@ -19,6 +19,19 @@ class Operation:
             return a/b 
         elif op.val =="^":
             return a**b 
+        elif op.val == "==":
+            if a == b:
+                return 1
+            else:
+                return 0
+        elif op.val == "<":
+            if b > a:
+                return 1
+            else:
+                return 0
+        
+
+
             
 class Function:
     def eval(fu,a):
@@ -42,7 +55,7 @@ class Interpreter:
         self.text =text 
         self.pos =0
         self.tokens = []
-        self.operators = {"+","-","*","/","^"}
+        self.operators = {"+","-","*","/","^","==","<"}
         self.functions = {"sin","cos","exp","log","sqrt"}
         self.type = None
         self.str =""
