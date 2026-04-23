@@ -46,6 +46,13 @@ class Function:
         elif fu.val =="sqrt":
             return math.sqrt(a) 
         
+class Condition:
+    def eval(condit,out1,out2):
+        if condit != 0:
+            return out1
+        else:
+            return out2
+        
 
 
 class Interpreter:
@@ -90,6 +97,9 @@ class Interpreter:
         
         elif self.str in self.variable_write:
             self.tokens.append(Token(self.str,"Variable_write"))
+
+        elif self.str == "if":
+            self.tokens.append(Token(self.str,"if_then"))
         
 
         else:
@@ -161,6 +171,13 @@ class Interpreter:
                 return self.variable["b"]
             elif current_token.val == 'c':
                 return self.variable["c"]
+            
+        elif current_token.ty == "if_then":
+            condit = self.parse()
+            out1 = self.parse()
+            out2 = self.parse()
+            return Condition.eval(condit,out1,out2)
+
         
         return 0
         
