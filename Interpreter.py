@@ -2,6 +2,14 @@ import math
 import re
 INTEGER, PLUS, EOF, OPERATION, FUNCTION,CONSTANT = 'INTEGER', 'PLUS', 'EOF', 'OPERATION', 'FUNCTION', 'CONSTANT'
 
+def isfloat(x):
+    try:
+        y= float(x)
+        return True
+    except:
+        return False
+
+
 
 class Token:
     def __init__(self,val,ty):
@@ -87,6 +95,9 @@ class Interpreter:
         if self.str.isdigit():
             self.tokens.append(Token(int(self.str), INTEGER))
 
+        elif isfloat(self.str):
+            self.tokens.append(Token(float(self.str), "FLOAT"))
+        
         elif self.str in self.operators:
             self.tokens.append(Token(self.str, OPERATION))
 
@@ -186,6 +197,9 @@ class Interpreter:
         if current_token.ty == INTEGER:
             return current_token.val
         
+        elif current_token.ty == "FLOAT":
+            return current_token.val
+        
         elif current_token.ty == OPERATION:
             left = self.parse()
             right = self.parse()
@@ -244,8 +258,11 @@ class Interpreter:
                 result = interpreter2.expr()
                 return result
             elif current_token.val == "g":
-                self.variable['x'] = self.parse()
-                interpreter2 = Interpreter(self.made_functions['g'],self.variable,self.made_functions)
+                arg = self.parse()                  # step 2: evaluate argument first
+                self.variable['x'] = arg     
+                body = self.made_functions['g']
+                substituted = re.sub(r'\bx\b', str(arg), body)  # step 5: substitute
+                interpreter2 = Interpreter(substituted,self.variable,self.made_functions)
                 result = interpreter2.expr()
                 return result
 
