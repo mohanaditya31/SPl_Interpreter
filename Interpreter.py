@@ -1,5 +1,6 @@
 import math
 import re
+import sys
 INTEGER, PLUS, EOF, OPERATION, FUNCTION,CONSTANT = 'INTEGER', 'PLUS', 'EOF', 'OPERATION', 'FUNCTION', 'CONSTANT'
 
 def isfloat(x):
@@ -9,7 +10,8 @@ def isfloat(x):
     except:
         return False
 
-
+class SPLError(Exception):
+    pass
 
 class Token:
     def __init__(self,val,ty):
@@ -84,9 +86,8 @@ class Interpreter:
 
 
 
-    def error(self):                                                    #Invalid Input
-        print("Invalid Input")
-        raise Exception('Error parsing input')
+    def error(self, invalid_term):
+        raise SPLError(f"Unrecognized expression: {invalid_term}")
     
     def finalize_token(self):                                           # Used to make tokens and store it 
         if self.str == "":
@@ -122,7 +123,7 @@ class Interpreter:
         
 
         else:
-            return self.error()
+            return self.error(self.str)
 
         self.str = ""
         self.type = None
@@ -360,10 +361,16 @@ def main():
                     result = 0
                     continue
 
-                interpreter = Interpreter(stmt, variables, made_functions)
-                result = interpreter.expr()
+                try:
+                    interpreter = Interpreter(stmt, variables, made_functions)
+                    result = interpreter.expr()
+                except SPLError as e:
+                    print(e)
+                    result = None
+                    break                   # stop block on first error
 
-            print(result)
+            if result is not None:
+                print(result)
             continue
 
         if len(text) >= 2 and text[1] == '=' and (text[0] == 'f' or text[0] == 'g'):
@@ -374,13 +381,20 @@ def main():
             
             continue
         
-        statements = split_statements(text, variables, made_functions)
-        for stmt in statements:
-            stmt = stmt.strip()
-            if not stmt:
-                continue
-            interpreter = Interpreter(stmt, variables, made_functions)
-            print(interpreter.expr())
+        try:
+            statements = split_statements(text, variables, made_functions)
+            for stmt in statements:
+                stmt = stmt.strip()
+                if not stmt:
+                    continue
+                try:
+                    interpreter = Interpreter(stmt, variables, made_functions)
+                    print(interpreter.expr())
+                except SPLError as e:
+                    print(e)
+                    break                   # stop on first error, back to prompt
+        except SPLError as e:
+            print(e)
 
 
 if __name__ == '__main__':
