@@ -268,7 +268,64 @@ class Interpreter:
 
         
         return 0
-        
+
+#------------------------------------------
+ 
+ 
+ 
+def expression_length(tokens, i, variables, made_functions):
+    """Returns how many tokens one complete expression consumes."""
+    if i >= len(tokens):
+        return 0
+
+    token = tokens[i]
+
+    if token.isdigit():
+        return 1
+    elif token == 'pi':
+        return 1
+    elif token in variables:
+        return 1
+    elif token in {'+', '-', '*', '/', '^', '==', '<'}:
+        left  = expression_length(tokens, i + 1, variables, made_functions)
+        right = expression_length(tokens, i + 1 + left, variables, made_functions)
+        return 1 + left + right
+    elif token in {'sin', 'cos', 'exp', 'log', 'sqrt'}:
+        arg = expression_length(tokens, i + 1, variables, made_functions)
+        return 1 + arg
+    elif token == 'if':
+        cond  = expression_length(tokens, i + 1, variables, made_functions)
+        true  = expression_length(tokens, i + 1 + cond, variables, made_functions)
+        false = expression_length(tokens, i + 1 + cond + true, variables, made_functions)
+        return 1 + cond + true + false
+    elif len(token) == 2 and token[1] == '=' and token[0].isalpha():
+        arg = expression_length(tokens, i + 1, variables, made_functions)
+        return 1 + arg
+    elif token in made_functions:
+        arg = expression_length(tokens, i + 1, variables, made_functions)
+        return 1 + arg
+
+    return 1
+
+
+def split_statements(text, variables, made_functions):
+    """Split a block of text into individual expression strings."""
+    tokens = text.split()
+    statements = []
+    i = 0
+
+    while i < len(tokens):
+        length = expression_length(tokens, i, variables, made_functions)
+        statements.append(' '.join(tokens[i:i + length]))
+        i += length
+
+    return statements 
+ 
+ 
+
+# ------------------------        
+
+
 
 def main():
     variables = {'a':0 , 'b':0,'c':0,'x':0}
@@ -285,17 +342,45 @@ def main():
             print("bye!")
             break
 
+        if text.startswith('{') and text.endswith('}'):
+            inner = text[1:-1].strip()
+            statements = split_statements(inner, variables, made_functions)
+
+            result = None
+            for stmt in statements:
+                stmt = stmt.strip()
+                if not stmt:
+                    continue
+
+                # function definition inside block
+                if len(stmt) >= 2 and stmt[1] == '=' and stmt[0].isalpha() and stmt[0] not in {'a', 'b', 'c'}:
+                    fname = stmt[0]
+                    body  = stmt[2:].strip()
+                    made_functions[fname] = body
+                    result = 0
+                    continue
+
+                interpreter = Interpreter(stmt, variables, made_functions)
+                result = interpreter.expr()
+
+            print(result)
+            continue
+
         if len(text) >= 2 and text[1] == '=' and (text[0] == 'f' or text[0] == 'g'):
             fname = text[0]              # "f"
             body  = text[2:].strip()     # "+ x 1"
             made_functions[fname] = body
-            print(f"function {fname} defined")
+            print("0")
             
             continue
         
-        interpreter = Interpreter(text,variables,made_functions)
-        result = interpreter.expr()
-        print(result)
+        statements = split_statements(text, variables, made_functions)
+        for stmt in statements:
+            stmt = stmt.strip()
+            if not stmt:
+                continue
+            interpreter = Interpreter(stmt, variables, made_functions)
+            print(interpreter.expr())
 
 
 if __name__ == '__main__':
